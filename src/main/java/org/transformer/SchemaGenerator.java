@@ -1,45 +1,33 @@
 package org.transformer;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.lang.annotation.Annotation;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.io.*;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
-import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.boot.spi.MetadataImplementor;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.reflections.Reflections;
 
+import javax.persistence.Column;
 import javax.persistence.Table;
 import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
-import java.util.logging.Logger;
 public class SchemaGenerator {
 
-    private Configuration cfg;
-
-    static Logger log =  java.util.logging.Logger.getLogger(SchemaGenerator.class.getName());
-
     public static void main(String[] args) throws Exception {
-
-
-        String currentUsersHomeDir = System.getProperty("user.home");
-        String directory = currentUsersHomeDir+ "/upwork/";
+        System.out.print("Enter packages name separating from space : ");
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String  lines = br.readLine();
-        String classpath = System.getProperty("java.class.path");
-        String[] classpathEntries = classpath.split(File.pathSeparator);
         String packageName[] = lines.trim().split("\\s+");
         for (Class<?> aClass : getClassesInPackage(packageName[0])) {
-           log.info(getSQLView(aClass));
+            appendSQLFile(getSQLView(aClass));
 
+        }
+
+        File file = new File("../scripts/jpa-views.sql");
+        if (file.exists()) {
+            System.out.println("Successfully Created SQL file in the scripts folder.");
         }
 
     }
@@ -99,12 +87,34 @@ public class SchemaGenerator {
         String onlyClass = cl.getName().substring(cl.getName().lastIndexOf('.') + 1);
         if (cl.isAnnotationPresent(Table.class)) {
             Table t = cl.getAnnotation(Table.class);
-            sql = sql.concat("--SQL view of "+t.name()+"\n");
-            sql = sql.concat("CREATE VIEW "+onlyClass+" AS\n"+t.name()+" SELECT");
+            sql = sql.concat("--SQL view of " + t.name() + "\n");
+            sql = sql.concat("CREATE VIEW " + onlyClass + " AS\n" + "SELECT ");
+
+            for (Field field : cl.getDeclaredFields()) {
+                if (field.isAnnotationPresent(Column.class)) {
+                    Column column = field.getAnnotation(Column.class);
+                    String columnName = column.name();
+                    sql = sql.concat(columnName + " ,");
+                }
+            }
+            sql = sql.substring(0,sql.length()-2);
+            sql = sql.concat("\nFROM " + t.name()+";");
         }
-        
         return sql;
     }
+// Create and Append  script to the sql file
+    private static void appendSQLFile(String script) throws IOException {
+        if (!script.isEmpty()) {
+            File theDir = new File("../scripts");
+            if (!theDir.exists()){
+                theDir.mkdirs();
+                Files.write(Paths.get("../scripts/jpa-views.sql"),(script+System.lineSeparator()+System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE,StandardOpenOption.APPEND);
+            }
+            else {
+                Files.write(Paths.get("../scripts/jpa-views.sql"),(script+System.lineSeparator()+System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE,StandardOpenOption.APPEND);
+            }
 
+        }
 
+    }
 }
