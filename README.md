@@ -46,3 +46,7 @@ mkdir example
 ```
 java -classpath model-tranformer-1.0-SNAPSHOT-jar-with-dependencies.jar:../example/* org.transformer.SchemaGenerator
 ```
+
+When running the program you have to give packages of JPA model class separated from space.
+
+> example: org.test.models com.app.models
