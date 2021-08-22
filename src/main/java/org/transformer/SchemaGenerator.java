@@ -34,7 +34,7 @@ public class SchemaGenerator {
 
 
 
-
+// Grab class from package
     public static final List<Class<?>> getClassesInPackage(String packageName) {
         String path = packageName.replaceAll("\\.", File.separator);
         List<Class<?>> classes = new ArrayList<>();
@@ -60,7 +60,6 @@ public class SchemaGenerator {
                         }
                     }
                 } catch (Exception ex) {
-                    // Silence is gold
                 }
             } else {
                 try {
@@ -73,7 +72,6 @@ public class SchemaGenerator {
                         }
                     }
                 } catch (Exception ex) {
-                    // Silence is gold
                 }
             }
         }
