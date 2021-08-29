@@ -1,5 +1,7 @@
 package org.transformer;
 
+import com.google.common.base.CaseFormat;
+
 import java.io.*;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -9,8 +11,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 
-import javax.persistence.Column;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 public class SchemaGenerator {
@@ -85,18 +86,48 @@ public class SchemaGenerator {
         String onlyClass = cl.getName().substring(cl.getName().lastIndexOf('.') + 1);
         if (cl.isAnnotationPresent(Table.class)) {
             Table t = cl.getAnnotation(Table.class);
-            sql = sql.concat("--SQL view of " + t.name() + "\n");
-            sql = sql.concat("CREATE VIEW " + onlyClass + " AS\n" + "SELECT ");
+            if (t.name() != null) {
+                sql = sql.concat("--SQL view of " + t.name() + "\n");
+                sql = sql.concat("CREATE VIEW " + onlyClass + " AS\n" + "SELECT ");
+            }else {
+                sql = sql.concat("--SQL view of " + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,onlyClass) + "\n");
+                sql = sql.concat("CREATE VIEW " + onlyClass + " AS\n" + "SELECT ");
+            }
+
 
             for (Field field : cl.getDeclaredFields()) {
+                //Id field
+                if (field.isAnnotationPresent(Id.class)) {
+                    sql.concat(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName())+ " AS "+field.getName()+", ");
+                }
+
+                //Usual column name
                 if (field.isAnnotationPresent(Column.class)) {
                     Column column = field.getAnnotation(Column.class);
                     String columnName = column.name();
-                    sql = sql.concat(columnName + " ,");
+                    sql = sql.concat(columnName + " AS "+ field.getName()+", ");
                 }
+
+                //OneToOne column name
+                if (field.isAnnotationPresent(OneToOne.class) && field.isAnnotationPresent(JoinColumn.class)) {
+                    JoinColumn joinColumn =field.getAnnotation(JoinColumn.class);
+                    sql = sql.concat(joinColumn.name() + " AS "+ field.getName()+", ");
+                }
+                // //OneToMany column name
+                if(field.isAnnotationPresent(ManyToOne.class)){
+                    JoinColumn joinColumn =field.getAnnotation(JoinColumn.class);
+                    sql = sql.concat(joinColumn.name() + " AS "+ field.getName()+", ");
+                }
+
             }
+
             sql = sql.substring(0,sql.length()-2);
-            sql = sql.concat("\nFROM " + t.name()+";");
+            if (t.name() != null) {
+                sql = sql.concat("\nFROM " + t.name()+";");
+            }else {
+                sql = sql.concat("\nFROM " + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,onlyClass)+";");
+            }
+
         }
         return sql;
     }
