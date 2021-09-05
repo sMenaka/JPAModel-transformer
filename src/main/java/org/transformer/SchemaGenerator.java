@@ -1,19 +1,17 @@
 package org.transformer;
 
-import com.google.common.base.CaseFormat;
 
+import org.transformer.utils.SQLUtils;
 import java.io.*;
-import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.*;
-
-
-import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
+
 public class SchemaGenerator {
 
     public static void main(String[] args) throws Exception {
@@ -21,9 +19,15 @@ public class SchemaGenerator {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String  lines = br.readLine();
         String packageName[] = lines.trim().split("\\s+");
+        Map<String,List<String>> map=readRedactedCSVAsMap();
         for (Class<?> aClass : getClassesInPackage(packageName[0])) {
-            appendSQLFile(getSQLView(aClass));
-
+            String onlyClass = aClass.getName().substring(aClass.getName().lastIndexOf('.') + 1);
+            SQLUtils.appendSQLFile(SQLUtils.getSQLView(aClass),"jpa-views.sql");
+            SQLUtils.tableDescriptionCSVGeneration(SQLUtils.getTableDescription(aClass));
+            Map<String,List<String>> redact = readRedactedCSVAsMap();
+            if (redact !=null) {
+                SQLUtils.appendSQLFile(SQLUtils.getSQLView(aClass,redact),"jpa-views-redacted.sql");
+            }
         }
 
         File file = new File("../scripts/jpa-views.sql");
@@ -32,8 +36,6 @@ public class SchemaGenerator {
         }
 
     }
-
-
 
 // Grab class from package
     public static final List<Class<?>> getClassesInPackage(String packageName) {
@@ -76,74 +78,35 @@ public class SchemaGenerator {
                 }
             }
         }
-
         return classes;
     }
 
-//Sql view Generation method.
-    private static String getSQLView(Class<?> cl){
-        String sql="";
-        String onlyClass = cl.getName().substring(cl.getName().lastIndexOf('.') + 1);
-        if (cl.isAnnotationPresent(Table.class)) {
-            Table t = cl.getAnnotation(Table.class);
-            if (t.name() != null) {
-                sql = sql.concat("--SQL view of " + t.name() + "\n");
-                sql = sql.concat("CREATE VIEW " + onlyClass + " AS\n" + "SELECT ");
-            }else {
-                sql = sql.concat("--SQL view of " + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,onlyClass) + "\n");
-                sql = sql.concat("CREATE VIEW " + onlyClass + " AS\n" + "SELECT ");
-            }
-
-
-            for (Field field : cl.getDeclaredFields()) {
-                //Id field
-                if (field.isAnnotationPresent(Id.class)) {
-                    sql.concat(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName())+ " AS "+field.getName()+", ");
+    private static  Map<String,List<String>> readRedactedCSVAsMap() throws IOException {
+        if (Files.exists(Paths.get("redacted.csv"))) {
+            Map<String,List<String>> redactedMap = new HashMap<>();
+            BufferedReader br = new BufferedReader(new FileReader("redacted.csv"));
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                String key = values[0];
+                String value = values[1];
+                key = key.replaceAll("\\s","");
+                value = value.replaceAll("\\s","");
+                if (redactedMap.containsKey(key)) {
+                    List<String> lst = redactedMap.get(key);
+                    lst.add(value);
+                    redactedMap.put(key,lst);
                 }
-
-                //Usual column name
-                if (field.isAnnotationPresent(Column.class)) {
-                    Column column = field.getAnnotation(Column.class);
-                    String columnName = column.name();
-                    sql = sql.concat(columnName + " AS "+ field.getName()+", ");
-                }
-
-                //OneToOne column name
-                if (field.isAnnotationPresent(OneToOne.class) && field.isAnnotationPresent(JoinColumn.class)) {
-                    JoinColumn joinColumn =field.getAnnotation(JoinColumn.class);
-                    sql = sql.concat(joinColumn.name() + " AS "+ field.getName()+", ");
-                }
-                // //OneToMany column name
-                if(field.isAnnotationPresent(ManyToOne.class)){
-                    JoinColumn joinColumn =field.getAnnotation(JoinColumn.class);
-                    sql = sql.concat(joinColumn.name() + " AS "+ field.getName()+", ");
+                else {
+                    List<String> lst = new ArrayList<>();
+                    lst.add(value);
+                    redactedMap.put(key,lst);
                 }
 
             }
-
-            sql = sql.substring(0,sql.length()-2);
-            if (t.name() != null) {
-                sql = sql.concat("\nFROM " + t.name()+";");
-            }else {
-                sql = sql.concat("\nFROM " + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,onlyClass)+";");
-            }
-
+            return redactedMap;
+        }else{
+            return  null;
         }
-        return sql;
-    }
-// Create and Append  script to the sql file
-    private static void appendSQLFile(String script) throws IOException {
-        if (!script.isEmpty()) {
-            File theDir = new File("../scripts");
-            if (!theDir.exists()){
-                theDir.mkdirs();
-                Files.write(Paths.get("../scripts/jpa-views.sql"),(script+System.lineSeparator()+System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE,StandardOpenOption.APPEND);
-            }
-            else {
-                Files.write(Paths.get("../scripts/jpa-views.sql"),(script+System.lineSeparator()+System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE,StandardOpenOption.APPEND);
-            }
-
-        }
-
     }
 }

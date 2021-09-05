@@ -7,12 +7,43 @@
 
 - Java 8+
 - Maven (build and run integration tool)
-## Installation
+##  Installing Maven
 
-Installing Maven on Mac OS X. [Here](https://www.baeldung.com/install-maven-on-windows-linux-mac#installing-maven-on-mac-os-x) 
-Adding Maven to the Environment Path for macOS Catalina or Higher. [Here](https://www.baeldung.com/install-maven-on-windows-linux-mac#2-adding-maven-to-the-environment-path-for-macos-catalina-or-higher) 
+To install Maven on windows, we head over to the [Apache Maven site](https://maven.apache.org/download.cgi) to download the latest version and select the Maven zip file, for example, unzip apache-maven-3.8.2-bin.zip
 
-After installation of the maven, the Next step is Building the project.
+Then we unzip it to the folder where we want Maven to live.
+
+
+## Setup Environment variable for maven in.
+
+Check environment variable value e.g.
+
+```
+1.echo %JAVA_HOME% 
+2.C:\Program Files\Java\jdk1.7.0_51
+
+```
+- Adding to PATH: Add the unpacked distribution’s bin directory to your user PATH environment variable by opening up the system properties (WinKey + Pause), selecting the “Advanced” tab, and the “Environment Variables” button, then adding or selecting the PATH variable in the user variables with the value C:\Program Files\apache-maven-3.8.2\bin. The same dialog can be used to set JAVA_HOME to the location of your JDK, e.g. C:\Program Files\Java\jdk1.7.0_51
+
+- Open a new command prompt (Winkey + R then type cmd) and run mvn -v to verify the installation.
+
+
+## Setup Environment variable for maven in Unix-based Operating System (Linux, Solaris, and Mac OS X).
+
+- Check environment variable value
+
+```
+1. echo $JAVA_HOME
+2. /Library/Java/JavaVirtualMachines/jdk1.8.0_45.jdk/Contents/Home
+
+```
+
+- Adding to PATH
+
+```
+export PATH=/opt/apache-maven-3.8.2/bin:$PATH
+```
+- Open a new terminal and run mvn -v to verify the installation.
 
 ## The Building Steps. 
 
@@ -52,5 +83,8 @@ When running the program you have to give packages of JPA model class separated 
 > example: org.test.models com.app.models
 
 
+![Alt Text](https://media.giphy.com/media/dtak0uxjstXEyf3SbG/giphy.gif?cid=790b7611d8bfea2fa633668166fa510399660097af40ea35&rid=giphy.gif&ct=g)
 
-The Output SQL file will be generated in the scripts dir in the root dir of the project.
+After the run the command you can see the  jpa-view.sql in the scripts dir in the root directory of the project.
+
+![Alt Text](https://drive.google.com/file/d/1AkzJJUs8qpk71nDpOKIS6WR8GQXHhJT3/view?usp=sharing)
