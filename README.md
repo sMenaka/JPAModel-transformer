@@ -87,4 +87,5 @@ When running the program you have to give packages of JPA model class separated 
 
 After the run the command you can see the  jpa-view.sql in the scripts dir in the root directory of the project.
 
-![Alt Text]( https://raw.github.com/sMenaka/JPAModel-transformer/main/src/resource/result.png)
+The output sql view.
+![alt text](https://drive.google.com/uc?export=view&id=1AkzJJUs8qpk71nDpOKIS6WR8GQXHhJT3)
