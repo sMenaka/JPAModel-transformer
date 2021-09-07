@@ -526,20 +526,22 @@ public class SQLUtils {
 
     public static void tableDescriptionCSVGeneration(List<List<String>> text) throws IOException {
         if (!text.isEmpty()) {
+            if (!Files.exists(Paths.get("../scripts/meta-data.csv"))) {
+                String[] headers = {"TYPE","SQL_NAME","JPA_NAME"};
+                Files.write(Paths.get("../scripts/meta-data.csv"),(String.join(",", headers)+System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE,StandardOpenOption.APPEND);
+            }
             File theDir = new File("../scripts");
             File file = new File("../scripts/meta-data.csv");
             FileWriter csvWriter = new FileWriter(file,true);
             if (!theDir.exists()){
                 theDir.mkdirs();
                 for (List<String> strings : text) {
-                    csvWriter.append(String.join(",", strings));
-                    csvWriter.append("\n");
+                    Files.write(Paths.get("../scripts/meta-data.csv"),(String.join(",", strings)+System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE,StandardOpenOption.APPEND);
                 }
             }
             else {
                 for (List<String> strings : text) {
-                    csvWriter.append(String.join(",", strings));
-                    csvWriter.append("\n");
+                    Files.write(Paths.get("../scripts/meta-data.csv"),(String.join(",", strings)+System.lineSeparator()).getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE,StandardOpenOption.APPEND);
                 }
             }
 
@@ -586,7 +588,6 @@ public class SQLUtils {
                         }else {
                             sql = sql.concat(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName())+ " AS "+field.getName()+", ");
                         }
-
                     }
 
                     //Usual column name
@@ -906,8 +907,6 @@ public class SQLUtils {
             }
         }
     }
-
-
 
 
     //------------- End of the Class. ---------------

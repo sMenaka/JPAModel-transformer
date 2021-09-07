@@ -89,3 +89,18 @@ After the run the command you can see the  jpa-view.sql in the scripts dir in th
 
 The output sql view.
 ![alt text](https://drive.google.com/uc?export=view&id=1AkzJJUs8qpk71nDpOKIS6WR8GQXHhJT3)
+
+
+##  Redaction with special column names with SQL file.
+
+If you place the redacted.csv file in the dir of the final jar file according to the following format, you can have the jpa-views-redacted.sql file in the scripts dir.
+
+
+The fromat of redacted.csv.
+
+![alt text](https://drive.google.com/uc?export=view&id=15sakGEn44MLs6DRfE_gpyg7yk_JDizMd)
+
+The jpa-views-redacted.sql file in scrips dir.
+
+![alt text](https://drive.google.com/uc?export=view&id=1Eunbgno8cKfUctbphIi2JNU_DY161FJ0)
+
