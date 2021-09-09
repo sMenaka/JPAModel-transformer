@@ -565,8 +565,8 @@ public class SQLUtils {
         String sql = "";
         String afterSql = "";
         String onlyClass = cl.getName().substring(cl.getName().lastIndexOf('.') + 1);
-        if (redact.containsKey(onlyClass)) {
             List<String> toRedactFields = redact.get(onlyClass);
+            boolean isTableRedacted = redact.containsKey(onlyClass);
             if (cl.isAnnotationPresent(Table.class)) {
                 Table t = cl.getAnnotation(Table.class);
                 if (t.name() != null) {
@@ -583,8 +583,8 @@ public class SQLUtils {
                 for (Field field : cl.getDeclaredFields()) {
                     //Id field
                     if (field.isAnnotationPresent(Id.class)) {
-                        if (toRedactFields.contains(field.getName())) {
-                            sql = sql.concat("redacted"+ " AS "+field.getName()+", ");
+                        if (isTableRedacted && toRedactFields.contains(field.getName())) {
+                            sql = sql.concat("\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName())+ " AS "+field.getName()+", ");
                         }
@@ -596,14 +596,14 @@ public class SQLUtils {
                         if (column.name() != null) {
 
                             String columnName = column.name();
-                            if (toRedactFields.contains(field.getName())) {
-                                sql = sql.concat("redacted"+ " AS "+field.getName()+", ");
+                            if (isTableRedacted && toRedactFields.contains(field.getName())) {
+                                sql = sql.concat("\'redacted\'"+ " AS "+field.getName()+", ");
                             }else {
                                 sql = sql.concat(columnName + " AS "+ field.getName()+", ");
                             }
                         }else {
-                            if (toRedactFields.contains(field.getName())) {
-                                sql = sql.concat("redacted"+ " AS "+field.getName()+", ");
+                            if (isTableRedacted && toRedactFields.contains(field.getName())) {
+                                sql = sql.concat("\'redacted\'"+ " AS "+field.getName()+", ");
                             }else {
                                 sql = sql.concat(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName())+ " AS "+field.getName() + " AS "+ field.getName()+", ");
                             }
@@ -616,14 +616,14 @@ public class SQLUtils {
                         JoinColumn joinColumn =field.getAnnotation(JoinColumn.class);
                         if (joinColumn.name() != null) {
                             String columnName = joinColumn.name();
-                            if (toRedactFields.contains(field.getName())) {
-                                sql = sql.concat("redacted"+ " AS "+field.getName()+", ");
+                            if (isTableRedacted && toRedactFields.contains(field.getName())) {
+                                sql = sql.concat("\'redacted\'"+ " AS "+field.getName()+", ");
                             }else {
                                 sql = sql.concat(columnName + " AS "+ field.getName()+", ");
                             }
                         }else {
-                            if (toRedactFields.contains(field.getName())) {
-                                sql = sql.concat("redacted"+ " AS "+field.getName()+", ");
+                            if (isTableRedacted && toRedactFields.contains(field.getName())) {
+                                sql = sql.concat("\'redacted\'"+ " AS "+field.getName()+", ");
                             }else {
                                 sql = sql.concat(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName())+ " AS "+field.getName() + " AS "+ field.getName()+", ");
                             }
@@ -637,14 +637,14 @@ public class SQLUtils {
                         JoinColumn joinColumn =field.getAnnotation(JoinColumn.class);
                         if (joinColumn.name() != null) {
                             String columnName = joinColumn.name();
-                            if (toRedactFields.contains(field.getName())) {
-                                sql = sql.concat("redacted"+ " AS "+field.getName()+", ");
+                            if (isTableRedacted && toRedactFields.contains(field.getName())) {
+                                sql = sql.concat("\'redacted\'"+ " AS "+field.getName()+", ");
                             }else {
                                 sql = sql.concat(columnName + " AS "+ field.getName()+", ");
                             }
                         }else {
-                            if (toRedactFields.contains(field.getName())) {
-                                sql = sql.concat("redacted"+ " AS "+field.getName()+", ");
+                            if (isTableRedacted && toRedactFields.contains(field.getName())) {
+                                sql = sql.concat("\'redacted\'"+ " AS "+field.getName()+", ");
                             }else {
                                 sql = sql.concat(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName())+ " AS "+field.getName() + " AS "+ field.getName()+", ");
                             }
@@ -657,7 +657,7 @@ public class SQLUtils {
                     if (field.isAnnotationPresent(ManyToMany.class) && field.isAnnotationPresent(JoinTable.class)) {
                         String manyTOMany = "";
                         JoinTable table = field.getAnnotation(JoinTable.class);
-                        if (redact.containsKey(table.name())) {
+
                             List<String> toManyTManyRedacted = redact.get(table.name());
                             manyTOMany = manyTOMany.concat("--SQL view of " + table.name() + "\n");
                             manyTOMany = manyTOMany.concat("DROP VIEW IF EXISTS "+table.name()+";\n");
@@ -665,8 +665,8 @@ public class SQLUtils {
 
                             for (JoinColumn joinColumn : table.joinColumns()) {
                                 String columnName = joinColumn.name();
-                                if (toManyTManyRedacted.contains(columnName)) {
-                                    manyTOMany = manyTOMany.concat("redacted" + " AS "+ columnName+", ");
+                                if (redact.containsKey(table.name()) && toManyTManyRedacted.contains(columnName)) {
+                                    manyTOMany = manyTOMany.concat("\'redacted\'" + " AS "+ columnName+", ");
                                 }else {
                                     manyTOMany = manyTOMany.concat(columnName + " AS "+ columnName+", ");
                                 }
@@ -677,8 +677,8 @@ public class SQLUtils {
                             for (JoinColumn joinColumn : table.inverseJoinColumns()) {
 
                                 String columnName = joinColumn.name();
-                                if (toManyTManyRedacted.contains(columnName)) {
-                                    manyTOMany = manyTOMany.concat("redacted" + " AS "+ columnName+", ");
+                                if (redact.containsKey(table.name()) && toManyTManyRedacted.contains(columnName)) {
+                                    manyTOMany = manyTOMany.concat("\'redacted\'" + " AS "+ columnName+", ");
                                 }else {
                                     manyTOMany = manyTOMany.concat(columnName + " AS "+ columnName+", ");
                                 }
@@ -687,7 +687,7 @@ public class SQLUtils {
                             manyTOMany = manyTOMany.substring(0,manyTOMany.length()-2);
                             manyTOMany = manyTOMany.concat("\nFROM " + table.name()+";");
                             afterSql = afterSql.concat(manyTOMany+"\n\n");
-                        }
+
                     }
 
                 }
@@ -706,8 +706,7 @@ public class SQLUtils {
                 return sql.concat("\n\n"+afterSql);
             }
 
-        }
-        return null;
+
     }
 
 
@@ -736,7 +735,7 @@ public class SQLUtils {
                 //Id field
                 if (field.isAnnotationPresent(Id.class)) {
                     if (isTable1Redact && toRedactFieldsTable1.contains(field.getName())) {
-                        sql.concat("ta."+"redacted"+ " AS "+field.getName()+", ");
+                        sql.concat("ta."+"\'redacted\'"+ " AS "+field.getName()+", ");
                     }else {
                         sql.concat("ta."+CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName())+ " AS "+field.getName()+", ");
                     }
@@ -748,14 +747,14 @@ public class SQLUtils {
                     String columnName = column.name();
                     if (column.name() != null) {
                         if (isTable1Redact && toRedactFieldsTable1.contains(field.getName())) {
-                            sql.concat("ta."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("ta."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("ta."+columnName + " AS "+ field.getName()+", ");
                         }
 
                     }else {
                         if (isTable1Redact && toRedactFieldsTable1.contains(field.getName())) {
-                            sql.concat("ta."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("ta."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("ta."+CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName()) + " AS "+ field.getName()+", ");
                         }
@@ -767,13 +766,13 @@ public class SQLUtils {
                     JoinColumn joinColumn =field.getAnnotation(JoinColumn.class);
                     if (joinColumn.name() != null) {
                         if (isTable1Redact && toRedactFieldsTable1.contains(field.getName())) {
-                            sql.concat("ta."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("ta."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("ta."+joinColumn.name() + " AS "+ field.getName()+", ");
                         }
                     }else {
                         if (isTable1Redact && toRedactFieldsTable1.contains(field.getName())) {
-                            sql.concat("ta."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("ta."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("ta."+CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName()) + " AS "+ field.getName()+", ");
                         }
@@ -786,7 +785,7 @@ public class SQLUtils {
                     JoinColumn joinColumn =field.getAnnotation(JoinColumn.class);
                     if (joinColumn.name() != null) {
                         if (isTable1Redact && toRedactFieldsTable1.contains(field.getName())) {
-                            sql.concat("ta."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("ta."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("ta."+joinColumn.name() + " AS "+ field.getName()+", ");
                         }
@@ -794,7 +793,7 @@ public class SQLUtils {
                     }else {
 
                         if (isTable1Redact && toRedactFieldsTable1.contains(field.getName())) {
-                            sql.concat("ta."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("ta."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("ta."+CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName()) + " AS "+ field.getName()+", ");
                         }
@@ -808,7 +807,7 @@ public class SQLUtils {
                 //Id field
                 if (field.isAnnotationPresent(Id.class)) {
                     if (isTable2Redact && toRedactFieldsTable2.contains(field.getName())) {
-                        sql.concat("tb."+"redacted"+ " AS "+field.getName()+", ");
+                        sql.concat("tb."+"\'redacted\'"+ " AS "+field.getName()+", ");
                     }else {
                         sql.concat("tb."+CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName())+ " AS "+field.getName()+", ");
                     }
@@ -820,13 +819,13 @@ public class SQLUtils {
                     String columnName = column.name();
                     if (column.name() != null) {
                         if (isTable2Redact && toRedactFieldsTable2.contains(field.getName())) {
-                            sql.concat("tb."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("tb."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("tb."+columnName + " AS "+ field.getName()+", ");
                         }
                     }else {
                         if (isTable2Redact && toRedactFieldsTable2.contains(field.getName())) {
-                            sql.concat("tb."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("tb."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("tb."+CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName()) + " AS "+ field.getName()+", ");
                         }
@@ -838,13 +837,13 @@ public class SQLUtils {
                     JoinColumn joinColumn =field.getAnnotation(JoinColumn.class);
                     if (joinColumn.name() != null) {
                         if (isTable2Redact && toRedactFieldsTable2.contains(field.getName())) {
-                            sql.concat("tb."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("tb."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("tb."+joinColumn + " AS "+ field.getName()+", ");
                         }
                     }else {
                         if (isTable2Redact && toRedactFieldsTable2.contains(field.getName())) {
-                            sql.concat("tb."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("tb."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("tb."+CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName()) + " AS "+ field.getName()+", ");
                         }
@@ -856,13 +855,13 @@ public class SQLUtils {
                     JoinColumn joinColumn =field.getAnnotation(JoinColumn.class);
                     if (joinColumn.name() != null) {
                         if (isTable2Redact && toRedactFieldsTable2.contains(field.getName())) {
-                            sql.concat("tb."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("tb."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("tb."+joinColumn + " AS "+ field.getName()+", ");
                         }
                     }else {
                         if (isTable2Redact && toRedactFieldsTable2.contains(field.getName())) {
-                            sql.concat("tb."+"redacted"+ " AS "+field.getName()+", ");
+                            sql.concat("tb."+"\'redacted\'"+ " AS "+field.getName()+", ");
                         }else {
                             sql = sql.concat("tb."+CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,field.getName()) + " AS "+ field.getName()+", ");
                         }                    }
