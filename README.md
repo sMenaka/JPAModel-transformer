@@ -102,5 +102,5 @@ The fromat of redacted.csv.
 
 The jpa-views-redacted.sql file in scrips dir.
 
-![alt text](https://drive.google.com/uc?export=view&id=1Eunbgno8cKfUctbphIi2JNU_DY161FJ0)
+![alt text](https://drive.google.com/uc?export=view&id=1Kr-Ig0UaUBdW1kwZS1t-h8u8c8j8VFlZ)
 
